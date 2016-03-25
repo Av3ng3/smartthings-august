@@ -1,0 +1,15 @@
+{
+  "name": "august-smartthings",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andy Savage <andy@savage.hk> (http://andy.savage.hk)",
+  "license": "SEE LICENSE IN License.txt",
+  "dependencies": {
+    "node-ssdp": "^2.7.0",
+    "passport-smartthings": "^0.3.7"
+  }
+}
