@@ -140,13 +140,57 @@ def getStatus(Boolean cached = "true") {
 //     api("relocktime")
 // }
 
-// handle commands
-def api(String command, Map params = null) {
-    def deviceNetworkId = "${deviceNetworkId}"
-    log.debug "command: http://${settings.serverAddress}:${settings.serverPort}/august/control/${command}"
-    if (command == "unlock") {
-        parent.unlock()
-    } else if (command == "lock") {
-        parent.lock()
+private api(String command, Map params = null) {
+    def result = new physicalgraph.device.HubAction(
+        method: "GET",
+        path: "/august/control/${command}",
+        headers: [
+            HOST: getHostAddress()
+        ],
+        query: params
+    )
+}
+
+def parse(description) {
+    def msg = parseLanMessage(description)
+
+    def headersAsString = msg.header // => headers as a string
+    def headerMap = msg.headers      // => headers as a Map
+    def body = msg.body              // => request body as a string
+    def status = msg.status          // => http status code of the response
+    def json = msg.json              // => any JSON included in response body, as a data structure of lists and maps
+    def xml = msg.xml                // => any XML included in response body, as a document tree structure
+    def data = msg.data              // => either JSON or XML in response body (whichever is specified by content-type header in response)
+}
+
+// gets the address of the hub
+private getCallBackAddress() {
+    return device.hub.getDataValue("localIP") + ":" + device.hub.getDataValue("localSrvPortTCP")
+}
+
+// gets the address of the device
+private getHostAddress() {
+    def ip = getDataValue("ip")
+    def port = getDataValue("port")
+
+    if (!ip || !port) {
+        def parts = device.deviceNetworkId.split(":")
+        if (parts.length == 2) {
+            ip = parts[0]
+            port = parts[1]
+        } else {
+            log.warn "Can't figure out ip and port for device: ${device.id}"
+        }
     }
+
+    log.debug "Using IP: $ip and port: $port for device: ${device.id}"
+    return convertHexToIP(ip) + ":" + convertHexToInt(port)
+}
+
+private Integer convertHexToInt(hex) {
+    return Integer.parseInt(hex,16)
+}
+
+private String convertHexToIP(hex) {
+    return [convertHexToInt(hex[0..1]),convertHexToInt(hex[2..3]),convertHexToInt(hex[4..5]),convertHexToInt(hex[6..7])].join(".")
 }
